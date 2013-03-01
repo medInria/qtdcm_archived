@@ -1,0 +1,13 @@
+digraph "/home/aabadie/softs/src/medinria/" {
+  compound=true
+  node [ fontsize="10", fontname="Helvetica"];
+  edge [ labelfontsize="10", labelfontname="Helvetica"];
+  subgraph clusterdir_95962c45080e44f9cc61ab8e2f8fb86a {
+    graph [ bgcolor="#ddddee", pencolor="black", label="src" fontname="Helvetica", fontsize="10", URL="dir_95962c45080e44f9cc61ab8e2f8fb86a.html"]
+  subgraph clusterdir_da53d45fa51ff2be4c9c2f9b4d851fc0 {
+    graph [ bgcolor="#eeeeff", pencolor="black", label="" URL="dir_da53d45fa51ff2be4c9c2f9b4d851fc0.html"];
+    dir_da53d45fa51ff2be4c9c2f9b4d851fc0 [shape=plaintext label="medinria"];
+    dir_aa5186e7b77d3a9fe6a15d95d9d7ddf4 [shape=box label="qtdcm" color="red" fillcolor="white" style="filled" URL="dir_aa5186e7b77d3a9fe6a15d95d9d7ddf4.html"];
+  }
+  }
+}

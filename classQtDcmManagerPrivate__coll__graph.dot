@@ -1,0 +1,16 @@
+digraph "QtDcmManagerPrivate"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="QtDcmManagerPrivate",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node2 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" importWidget" ,fontname="Helvetica"];
+  Node2 [label="QtDcmImportWidget",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classQtDcmImportWidget.html"];
+  Node3 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" serieInfoWidget" ,fontname="Helvetica"];
+  Node3 [label="QtDcmSerieInfoWidget",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classQtDcmSerieInfoWidget.html"];
+  Node4 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" mainWidget" ,fontname="Helvetica"];
+  Node4 [label="QtDcm",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classQtDcm.html",tooltip="This class contains the widget for managing Dicom data."];
+  Node5 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" previewWidget" ,fontname="Helvetica"];
+  Node5 [label="QtDcmPreviewWidget",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classQtDcmPreviewWidget.html"];
+  Node6 -> Node1 [dir="back",color="darkorchid3",fontsize="10",style="dashed",label=" currentPacs" ,fontname="Helvetica"];
+  Node6 [label="QtDcmServer",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classQtDcmServer.html",tooltip="This class is a representation of a Dicom PACS server."];
+}

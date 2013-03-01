@@ -1,0 +1,9 @@
+digraph "/home/aabadie/softs/src/medinria/qtdcm/Documentation/Doxygen/" {
+  compound=true
+  node [ fontsize="10", fontname="Helvetica"];
+  edge [ labelfontsize="10", labelfontname="Helvetica"];
+  subgraph clusterdir_7240596cda56f37aea5f0e81846e53ad {
+    graph [ bgcolor="#ddddee", pencolor="black", label="Documentation" fontname="Helvetica", fontsize="10", URL="dir_7240596cda56f37aea5f0e81846e53ad.html"]
+  dir_5e7fda6b4367814e941593eb393c2a7c [shape=box, label="Doxygen", style="filled", fillcolor="#eeeeff", pencolor="black", URL="dir_5e7fda6b4367814e941593eb393c2a7c.html"];
+  }
+}

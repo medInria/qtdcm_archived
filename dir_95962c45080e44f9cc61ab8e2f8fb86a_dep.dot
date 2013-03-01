@@ -1,0 +1,10 @@
+digraph "/home/aabadie/softs/src/" {
+  compound=true
+  node [ fontsize="10", fontname="Helvetica"];
+  edge [ labelfontsize="10", labelfontname="Helvetica"];
+  subgraph clusterdir_95962c45080e44f9cc61ab8e2f8fb86a {
+    graph [ bgcolor="#eeeeff", pencolor="black", label="" URL="dir_95962c45080e44f9cc61ab8e2f8fb86a.html"];
+    dir_95962c45080e44f9cc61ab8e2f8fb86a [shape=plaintext label="src"];
+    dir_da53d45fa51ff2be4c9c2f9b4d851fc0 [shape=box label="medinria" color="red" fillcolor="white" style="filled" URL="dir_da53d45fa51ff2be4c9c2f9b4d851fc0.html"];
+  }
+}
