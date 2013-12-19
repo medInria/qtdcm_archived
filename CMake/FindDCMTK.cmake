@@ -97,6 +97,7 @@ foreach(lib
     ${DCMTK_DIR}/${lib}/libsrc/Release
     ${DCMTK_DIR}/${lib}/Release
     ${DCMTK_DIR}/Release/lib
+    ${DCMTK_DIR}/lib
     ${DCMTK_DIR}/dcmjpeg/lib${lib}/Release
     NO_DEFAULT_PATH
     )
@@ -109,6 +110,7 @@ foreach(lib
     ${DCMTK_DIR}/${lib}/libsrc/Debug
     ${DCMTK_DIR}/${lib}/Debug
     ${DCMTK_DIR}/Debug/lib
+    ${DCMTK_DIR}/lib
     ${DCMTK_DIR}/dcmjpeg/lib${lib}/Debug
     NO_DEFAULT_PATH
     )
@@ -198,8 +200,8 @@ foreach(dir
     ${DCMTK_DIR}/include/dcmtk/${dir}
     ${DCMTK_DIR}/${dir}/include/dcmtk/${dir}
     ${DCMTK_DIR}/include/${dir}
-	${DCMTK_DIR}/Release/include/dcmtk/${dir}
-	${DCMTK_DIR}/Debug/include/dcmtk/${dir}
+	  ${DCMTK_DIR}/Release/include/dcmtk/${dir}
+	  ${DCMTK_DIR}/Debug/include/dcmtk/${dir}
     ${SOURCE_DIR_PATH}
     )
   mark_as_advanced(DCMTK_${dir}_INCLUDE_DIR)
