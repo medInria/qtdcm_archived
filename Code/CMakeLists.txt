@@ -137,9 +137,9 @@ configure_file(${QTDCM_SOURCE_DIR}/CMake/QtDCMConfig.cmake.in
               ${QTDCM_BINARY_DIR}/QtDCMConfig.cmake)
 
 # Save the compiler settings so another project can import them.
-include(${CMAKE_ROOT}/Modules/CMakeExportBuildSettings.cmake)
-cmake_export_build_settings(${QTDCM_BINARY_DIR}/QtDCMBuildSettings.cmake)
-export_library_dependencies(${QTDCM_BINARY_DIR}/QtDCMLibraryDepends.cmake)
+#include(${CMAKE_ROOT}/Modules/CMakeExportBuildSettings.cmake)
+#cmake_export_build_settings(${QTDCM_BINARY_DIR}/QtDCMBuildSettings.cmake)
+#export_library_dependencies(${QTDCM_BINARY_DIR}/QtDCMLibraryDepends.cmake)
 
 # Create the QtDCMConfig.cmake file containing the QtDCM configuration used with make install and CPack.
 # include (${QTDCM_SOURCE_DIR}/CMake/QtDCMGenerateInstall.cmake)

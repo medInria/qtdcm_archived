@@ -1,15 +1,10 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.0)
+cmake_policy(SET CMP0048 NEW)
 
-project(QTDCM)
+set(QTDCM_VERSION_NUMBER "2.0.2")
+mark_as_advanced(QTDCM_VERSION_NUMBER)
 
-set(${PROJECT_NAME}_VERSION_MAJOR 2 CACHE STRING "${PROJECT_NAME} major version number.")
-set(${PROJECT_NAME}_VERSION_MINOR 0 CACHE STRING "${PROJECT_NAME} minor version number.")
-set(${PROJECT_NAME}_VERSION_PATCH 2 CACHE STRING "${PROJECT_NAME} patch version number.")
-set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}.${${PROJECT_NAME}_VERSION_PATCH}")
-
-mark_as_advanced(${PROJECT_NAME}_VERSION_MAJOR)
-mark_as_advanced(${PROJECT_NAME}_VERSION_MINOR)
-mark_as_advanced(${PROJECT_NAME}_VERSION_PATCH)
+project(QTDCM VERSION ${QTDCM_VERSION_NUMBER})
 
 option(BUILD_EXAMPLE "Build qtdcm example application" OFF)
 option(BUILD_SHARED_LIBS "Build QtDcm with shared libraries." OFF)
