@@ -1,0 +1,23 @@
+## This file saves all the configuration of QTDCM compilation
+# This file is to be included from outside projects which uses QtM3d
+
+#path to binary dir of QTDCM
+set(QTDCM_BINARY_DIR "@QTDCM_BINARY_DIR@")
+
+# all include dirs pour QTDCM
+set(QTDCM_INCLUDE_DIR  "@QTDCM_INCLUDE_DIR@")
+
+# The Vistal version number
+set(QTDCM_VERSION_MAJOR "@QTDCM_VERSION_MAJOR@")
+set(QTDCM_VERSION_MINOR "@QTDCM_VERSION_MINOR@")
+set(QTDCM_VERSION_PATCH "@QTDCM_VERSION_PATCH@")
+
+# all QTDCM libs
+set(QTDCM_LIBRARIES "@QTDCM_LIBRARIES@")
+
+#set(DCMTK_INCLUDE_DIR "@DCMTK_INCLUDE_DIR@")
+#set(DCMTK_DIR "@DCMTK_DIR@")
+#set(DCMTK_LIBRARIES "@DCMTK_LIBRARIES@")
+
+
+

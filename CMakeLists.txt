@@ -1,60 +1,61 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.0.2)
 
-project(QTDCM)
+project(QTDCM VERSION "2.1.0")
 
-set(${PROJECT_NAME}_VERSION_MAJOR 2 CACHE STRING "${PROJECT_NAME} major version number.")
-set(${PROJECT_NAME}_VERSION_MINOR 0 CACHE STRING "${PROJECT_NAME} minor version number.")
-set(${PROJECT_NAME}_VERSION_PATCH 2 CACHE STRING "${PROJECT_NAME} patch version number.")
-set(${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}.${${PROJECT_NAME}_VERSION_PATCH}")
-
-mark_as_advanced(${PROJECT_NAME}_VERSION_MAJOR)
-mark_as_advanced(${PROJECT_NAME}_VERSION_MINOR)
-mark_as_advanced(${PROJECT_NAME}_VERSION_PATCH)
-
-option(BUILD_EXAMPLE "Build qtdcm example application" OFF)
-option(BUILD_SHARED_LIBS "Build QtDcm with shared libraries." OFF)
+option(BUILD_EXAMPLE       "Build qtdcm example application" OFF)
 option(BUILD_DOCUMENTATION "Build QtDcm Documentation (add a Documentation target)" OFF)
-option(BUILD_PACKAGE "Configure QtDcm packaging" OFF)
+option(BUILD_PACKAGE       "Configure QtDcm packaging" OFF)
 
-option(BUILD_SHARED_LIBS "Build Qtdcm with shared libraries." ON)
-
-if(BUILD_PACKAGE)
-  include (${QTDCM_SOURCE_DIR}/CMake/CPackConfig.cmake)
-endif(BUILD_PACKAGE)
-
-set(EXECUTABLE_OUTPUT_PATH "${QTDCM_BINARY_DIR}/bin")
-if (WIN32 AND BUILD_SHARED_LIBS)
-  set(LIBRARY_OUTPUT_PATH "${QTDCM_BINARY_DIR}/bin")
-else (WIN32 AND BUILD_SHARED_LIBS)
-  set(LIBRARY_OUTPUT_PATH "${QTDCM_BINARY_DIR}/lib")
-endif (WIN32 AND BUILD_SHARED_LIBS)
+set(EXECUTABLE_OUTPUT_PATH "${PROJECT_BINARY_DIR}/bin")
+if (WIN32)
+  set(LIBRARY_OUTPUT_PATH "${PROJECT_BINARY_DIR}/bin")
+else()
+  set(LIBRARY_OUTPUT_PATH "${PROJECT_BINARY_DIR}/lib")
+endif()
 mark_as_advanced(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
 
-#Configure doxygen documentation
-if(BUILD_DOCUMENTATION)
-  add_subdirectory(Documentation/Doxygen)
-endif(BUILD_DOCUMENTATION)
+option(DCMTK_FIND_PACKAGE_USE_CONFIG_ONLY 
+  "Do not use any FindDCMTK.cmake module found in the CMAKE_MODULE_PATH to find DCMTK." 
+  OFF)
 
-set (QTDCM_CMAKE_MODULE_PATH ${QTDCM_SOURCE_DIR}/CMake)
-set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${QTDCM_CMAKE_MODULE_PATH}")
-
-add_subdirectory(Code)
-
-if (BUILD_EXAMPLE)
-  add_subdirectory(Example)
+if(DCMTK_FIND_PACKAGE_USE_CONFIG_ONLY)
+  set(DCMTK_FIND_PACKAGE_STATEGY NO_MODULE)
 endif()
 
-## ###################################################################
-## INSTALL RULES
-## ###################################################################
-if( EXISTS ${${PROJECT_NAME}_BINARY_DIR}/QtDCMConfig.cmake
-AND EXISTS ${${PROJECT_NAME}_BINARY_DIR}/UseQtDCM.cmake)
+set(${PROJECT_NAME}_CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${${PROJECT_NAME}_CMAKE_MODULE_PATH}")
+
+# Includes
+include(GNUInstallDirs)
+include(QtDCMSettings)
+if(BUILD_PACKAGE)
+  include(QtDcmCPackConfig)
+endif()
+
+# External inclusion:
+export(PACKAGE ${PROJECT_NAME})
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/QtDCMConfig.cmake.in
+              "${CMAKE_CURRENT_BINARY_DIR}/QtDCMConfig.cmake" @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/QtDCMConfig.install.cmake.in
+              "${PROJECT_BINARY_DIR}/install/QtDCMConfig.cmake" @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/QtDCMConfigVersion.cmake.in
+              "${CMAKE_CURRENT_BINARY_DIR}/QtDCMConfigVersion.cmake" @ONLY)
 
 install(FILES
-  ${${PROJECT_NAME}_BINARY_DIR}/QtDCMConfig.cmake
-  ${${PROJECT_NAME}_BINARY_DIR}/UseQtDCM.cmake
-  DESTINATION
-  share/qtdcm)
+  "${PROJECT_BINARY_DIR}/install/QtDCMConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/QtDCMConfigVersion.cmake"
+  DESTINATION  ${CMAKE_INSTALL_LIBDIR}/cmake/qtdcm-${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR})
 
-endif( EXISTS ${${PROJECT_NAME}_BINARY_DIR}/QtDCMConfig.cmake
-   AND EXISTS ${${PROJECT_NAME}_BINARY_DIR}/UseQtDCM.cmake)
+install(EXPORT ${PROJECT_NAME}Depends DESTINATION  ${CMAKE_INSTALL_LIBDIR}/cmake/qtdcm-${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR})
+
+add_definitions(-DQT_MESSAGELOGCONTEXT)
+
+add_subdirectory(src)
+if (BUILD_EXAMPLE)
+  set(QTDCM_DIR ${${PROJECT_NAME}_BINARY_DIR})
+  add_subdirectory(example)
+endif()
+if(BUILD_DOCUMENTATION)
+  add_subdirectory(documentation)
+endif()
