@@ -18,6 +18,9 @@
 */
 
 #include "QtDcm.h"
+
+#include <QFileDialog>
+
 #include <QtDcmPatient.h>
 #include <QtDcmStudy.h>
 #include <QtDcmSerie.h>
@@ -38,9 +41,10 @@ public:
     QMap<QString, QList<QString> > selectedSeries;
 };
 
-QtDcm::QtDcm ( QWidget *parent ) : QWidget ( parent ), d ( new QtDcmPrivate )
+QtDcm::QtDcm ( QWidget *parent ) 
+    : QWidget ( parent ), d ( new QtDcmPrivate )
 {
-    QTextCodec::setCodecForCStrings ( QTextCodec::codecForName ( "iso" ) );
+    QTextCodec::setCodecForLocale( QTextCodec::codecForName ( "iso" ) );
     setupUi ( this );
     d->mode = QtDcm::CD;
 
@@ -78,16 +82,14 @@ QtDcm::QtDcm ( QWidget *parent ) : QWidget ( parent ), d ( new QtDcmPrivate )
     QtDcmManager::instance()->setStudiesTreeWidget ( treeWidgetStudies );
     QtDcmManager::instance()->setSeriesTreeWidget ( treeWidgetSeries );
 
-    QtDcmManager::instance()->setDate1 ( startDateEdit->date().toString ( "yyyyMMdd" ) );
-    QtDcmManager::instance()->setDate2 ( endDateEdit->date().toString ( "yyyyMMdd" ) );
+    QtDcmManager::instance()->setStartDate ( startDateEdit->date().toString ( "yyyyMMdd" ) );
+    QtDcmManager::instance()->setEndDate ( endDateEdit->date().toString ( "yyyyMMdd" ) );
 
     initConnections();
 }
 
 QtDcm::~QtDcm()
 {
-  QtDcmManager::instance()->deleteTemporaryDirs();
-
   delete d;
   d = NULL;
 }
@@ -116,8 +118,10 @@ void QtDcm::updatePacsComboBox()
     pacsComboBox->blockSignals ( true );
     pacsComboBox->clear();
 
-    for ( int i = 0; i < QtDcmPreferences::instance()->getServers().size(); i++ )
-        pacsComboBox->addItem ( QtDcmPreferences::instance()->getServers().at ( i )->getName() );
+    for ( int i = 0; i < QtDcmPreferences::instance()->servers().size(); i++ ) {
+        pacsComboBox->addItem ( QtDcmPreferences::instance()->servers().at ( i ).name() );
+    }
+    
     pacsComboBox->blockSignals ( false );
 }
 
@@ -178,14 +182,14 @@ void QtDcm::serieItemSelected ( QTreeWidgetItem* current, QTreeWidgetItem* previ
 {
     if ( current != 0 )   // Avoid crash when clearDisplay is called
     {
-        QtDcmManager::instance()->clearListImages();
+        QtDcmManager::instance()->clearListOfImages();
 
         if ( d->mode == QtDcm::CD )
             QtDcmManager::instance()->findImagesDicomdir ( current->text ( 3 ) );
         else
             QtDcmManager::instance()->findImagesScu ( current->text ( 3 ) );
 
-        int elementCount = QtDcmManager::instance()->getListImages().size();
+        int elementCount = QtDcmManager::instance()->listOfImages().size();
         QString institution = current->data ( 5, 0 ).toString();
         QString opName = current->data ( 6, 0 ).toString();
 
@@ -208,34 +212,26 @@ void QtDcm::openDicomdir()
     this->clearDisplay();
     d->mode = QtDcm::CD;
     // Open a QFileDialog for choosing a Dicomdir
-    QFileDialog * dialog = new QFileDialog( this );
-    dialog->setFileMode ( QFileDialog::ExistingFile );
-    dialog->setDirectory ( QDir::home().dirName() );
-    dialog->setWindowTitle ( tr ( "Open dicomdir" ) );
-    QStringList filters;
-    filters << "Dicomdir files (dicomdir* DICOMDIR*)";
-    filters << "Any files (*)";
-    dialog->setNameFilters(filters);
-
+    QFileDialog dialog(this);
+    dialog.setWindowTitle ( tr ( "Open dicomdir" ) );
+    dialog.setNameFilters(QStringList() << "Dicomdir files (dicomdir* DICOMDIR*)");
+    
+    // Trying to open directly on one of the available drives
+    if (!QDir::drives().isEmpty()) {
+        dialog.setDirectory ( QDir::drives().first().absoluteDir() );
+    }
+    
     QString fileName;
-
-    if ( dialog->exec() )
-    {
-        fileName = dialog->selectedFiles() [0];
+    if ( dialog.exec() ) {
+        fileName = dialog.selectedFiles() [0];
     }
 
-    dialog->close();
-
-    if ( !fileName.isEmpty() )   // A file has been chosen
-    {
-        if (QString::compare(fileName, "dicomdir", Qt::CaseInsensitive))
-        {
+    if ( !fileName.isEmpty() ) {  // A file has been chosen{
+        if (QString::compare(fileName, "dicomdir", Qt::CaseInsensitive)) {
             QtDcmManager::instance()->setDicomdir ( fileName );
             this->loadPatientsFromDicomdir();
         }
     }
-
-    dialog->deleteLater();
 }
 
 void QtDcm::loadPatientsFromDicomdir()
@@ -253,7 +249,6 @@ void QtDcm::updateModality ( int index )
 {
     switch ( index )
     {
-
     case 0://*
         QtDcmManager::instance()->setModality ( "*" );
         break;
@@ -273,12 +268,13 @@ void QtDcm::updateModality ( int index )
 
     treeWidgetSeries->clear();
 
-    if ( treeWidgetPatients->currentItem() && treeWidgetStudies->currentItem() )
-    {
-        if ( d->mode == QtDcm::PACS )
+    if ( treeWidgetPatients->currentItem() && treeWidgetStudies->currentItem() ) {
+        if ( d->mode == QtDcm::PACS ) {
             QtDcmManager::instance()->findSeriesScu ( treeWidgetPatients->currentItem()->text ( 0 ), treeWidgetStudies->currentItem()->data ( 2, 0 ).toString() );
-        else
+        }
+        else {
             QtDcmManager::instance()->findSeriesDicomdir ( treeWidgetPatients->currentItem()->text ( 0 ), treeWidgetStudies->currentItem()->data ( 2, 0 ).toString() );
+        }
     }
 }
 
@@ -311,112 +307,107 @@ void QtDcm::updatePACS ( int index )
 
 void QtDcm::startDateChanged ( QDate date )
 {
-    if ( date > endDateEdit->date() )
-    {
+    if ( date > endDateEdit->date() ) {
         date = endDateEdit->date();
         startDateEdit->setDate ( date );
         return;
     }
 
-    QtDcmManager::instance()->setDate1 ( date.toString ( "yyyyMMdd" ) );
+    QtDcmManager::instance()->setStartDate ( date.toString ( "yyyyMMdd" ) );
 
     treeWidgetStudies->clear();
     treeWidgetSeries->clear();
 
-    if ( treeWidgetPatients->currentItem() )
-    {
-        if ( d->mode == QtDcm::PACS )
+    if ( treeWidgetPatients->currentItem() ) {
+        if ( d->mode == QtDcm::PACS ) {
             QtDcmManager::instance()->findStudiesScu ( treeWidgetPatients->currentItem()->text ( 0 ) );
-        else
+        }
+        else {
             qDebug() << "recherche sur le cd";
+        }
     }
 }
 
 void QtDcm::endDateChanged ( QDate date )
 {
-    if ( date < startDateEdit->date() )
-    {
+    if ( date < startDateEdit->date() ) {
         date = startDateEdit->date();
         endDateEdit->setDate ( date );
         return;
     }
 
-    QtDcmManager::instance()->setDate2 ( date.toString ( "yyyyMMdd" ) );
+    QtDcmManager::instance()->setEndDate ( date.toString ( "yyyyMMdd" ) );
 
     treeWidgetStudies->clear();
     treeWidgetSeries->clear();
 
-    if ( treeWidgetPatients->currentItem() )
-    {
-        if ( d->mode == QtDcm::PACS )
+    if ( treeWidgetPatients->currentItem() ) {
+        if ( d->mode == QtDcm::PACS ) {
             QtDcmManager::instance()->findStudiesScu ( treeWidgetPatients->currentItem()->text ( 0 ) );
-        else
+        }
+        else {
             qDebug() << "recherche sur le cd";
+        }
     }
 }
 
 void QtDcm::editPreferences()
 {
     //Launch a dialog window for editing PACS settings
-    QtDcmPreferencesDialog * dialog = new QtDcmPreferencesDialog ( this );
-    dialog->getWidget()->setPreferences ( QtDcmPreferences::instance() );
-    dialog->setPreferences ( QtDcmPreferences::instance() );
-
-    if ( dialog->exec() )
-    {
-        dialog->getWidget()->updatePreferences();
-        dialog->updatePreferences();
-//         this->updatePacsComboBox();
+    QtDcmPreferencesDialog dialog( this );
+    dialog.readPreferences();
+    if ( dialog.exec() ) {
+        dialog.updatePreferences();
     }
-    dialog->close();
-    delete dialog;
 }
 
 void QtDcm::patientNameTextChanged ( QString name )
 {
-    if ( name.isEmpty() )
+    if ( name.isEmpty() ) {
         QtDcmManager::instance()->setPatientName ( "*" );
-    else
+    }
+    else {
         QtDcmManager::instance()->setPatientName ( name + "*" );
+    }
 
-    if ( d->mode == QtDcm::PACS )
+    if ( d->mode == QtDcm::PACS ) {
         this->findSCU();
+    }
 }
 
 void QtDcm::studyDescriptionTextChanged ( QString desc )
 {
-    if ( desc.isEmpty() )
+    if ( desc.isEmpty() ) {
         QtDcmManager::instance()->setStudyDescription ( "*" );
-    else
+    }
+    else {
         QtDcmManager::instance()->setStudyDescription ( "*" + desc + "*" );
+    }
 
-    if ( d->mode == QtDcm::PACS )
-    {
+    if ( d->mode == QtDcm::PACS ) {
         treeWidgetStudies->clear();
         treeWidgetSeries->clear();
     }
-    if ( treeWidgetPatients->currentItem() )
-    {
-        if ( d->mode == QtDcm::PACS )
-            QtDcmManager::instance()->findStudiesScu ( treeWidgetPatients->currentItem()->text ( 0 ) );
+    
+    if ( treeWidgetPatients->currentItem() && d->mode == QtDcm::PACS ) {
+        QtDcmManager::instance()->findStudiesScu ( treeWidgetPatients->currentItem()->text ( 0 ) );
     }
 }
 
 void QtDcm::serieDescriptionTextChanged ( QString desc )
 {
-    if ( desc.isEmpty() )
-    {
+    if ( desc.isEmpty() ) {
         QtDcmManager::instance()->setSerieDescription ( "*" );
     }
-    else
+    else {
         QtDcmManager::instance()->setSerieDescription ( "*" + desc + "*" );
+    }
 
-    if ( d->mode == QtDcm::PACS )
+    if ( d->mode == QtDcm::PACS ) {
         treeWidgetSeries->clear();
+    }
 
-    if ( treeWidgetPatients->currentItem() && treeWidgetStudies->currentItem() )
-    {
-        if ( d->mode == QtDcm::PACS )
-            QtDcmManager::instance()->findSeriesScu ( treeWidgetPatients->currentItem()->text ( 0 ), treeWidgetStudies->currentItem()->data ( 2, 0 ).toString() );
+    if ( treeWidgetPatients->currentItem() && treeWidgetStudies->currentItem() && d->mode == QtDcm::PACS) {
+        QtDcmManager::instance()->findSeriesScu ( treeWidgetPatients->currentItem()->text ( 0 ), treeWidgetStudies->currentItem()->data ( 2, 0 ).toString() );
     }
 }

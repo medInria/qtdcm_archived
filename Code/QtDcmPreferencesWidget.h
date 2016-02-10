@@ -25,20 +25,15 @@
 
 #include "ui_qtdcmpreferenceswidget.h"
 
-
-class QtDcmPreferences;
-class QtDcmPreferencesWidgetPrivate;
-
 class QtDcmPreferencesWidget : public QWidget, public Ui::PreferencesWidget
 {
     Q_OBJECT
 
 public:
-    QtDcmPreferencesWidget ( QWidget * parent = 0 );
+    explicit QtDcmPreferencesWidget ( QWidget * parent = 0 );
+    virtual ~QtDcmPreferencesWidget();
 
-    QtDcmPreferences * getPreferences();
-
-    void setPreferences ( QtDcmPreferences * prefs );
+    void readPreferences();
     void updatePreferences();
 
 // public slots:
@@ -53,9 +48,6 @@ public:
 /*
 signals:
     void sendEchoToPacs ( int index );*/
-
-private:
-    QtDcmPreferencesWidgetPrivate * d;
 
 //     void initConnections();
 };

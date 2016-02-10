@@ -21,10 +21,9 @@
 #define QTDCMFINDCALLBACK_H_
 
 #include <QtGui>
-#include "dcmtk/dcmnet/dfindscu.h"
+#include <dcmtk/dcmnet/dfindscu.h>
 
 struct T_DIMSE_C_FindRQ;
-
 struct T_DIMSE_C_FindRSP;
 
 class DcmDataset;
@@ -35,14 +34,16 @@ class QtDcmFindCallback : public DcmFindSCUCallback
 {
 
 public:
-    QtDcmFindCallback();
-    QtDcmFindCallback ( int type );
+    QtDcmFindCallback ( int type = PATIENT );
 
     virtual ~QtDcmFindCallback();
 
-    enum cbType
-    {
-        PATIENT, STUDY, SERIE, IMAGES, IMAGE
+    enum cbType {
+        PATIENT, 
+        STUDY, 
+        SERIE, 
+        IMAGES,
+        IMAGE
     };
 
     virtual void callback ( T_DIMSE_C_FindRQ *request, int responseCount, T_DIMSE_C_FindRSP *rsp, DcmDataset *responseIdentifiers );

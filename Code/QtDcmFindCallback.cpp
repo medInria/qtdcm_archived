@@ -17,43 +17,17 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#define INCLUDE_CSTDLIB
-#define INCLUDE_CSTDIO
-#define INCLUDE_CSTRING
-#define INCLUDE_CSTDARG
-// From Dcmtk:
-#include <dcmtk/config/osconfig.h>    /* make sure OS specific configuration is included first */
-
-#include "dcmtk/ofstd/ofstdinc.h"
-#include "dcmtk/ofstd/ofstd.h"
-#include "dcmtk/ofstd/ofconapp.h"
-#include <dcmtk/ofstd/ofstream.h>
-#include <dcmtk/dcmdata/dctk.h>
-#include <dcmtk/dcmdata/dcfilefo.h>
-#include "dcmtk/dcmnet/dfindscu.h"
-#include <dcmtk/dcmdata/dcistrmz.h>    /* for dcmZlibExpectRFC1950Encoding */
-// For dcm images
-#include <dcmtk/dcmimgle/dcmimage.h>
-#include "dcmtk/dcmdata/dcrledrg.h"      /* for DcmRLEDecoderRegistration */
-#include "dcmtk/dcmjpeg/djdecode.h"     /* for dcmjpeg decoders */
-#include "dcmtk/dcmjpeg/dipijpeg.h"     /* for dcmimage JPEG plugin */
-// For color images
-#include <dcmtk/dcmimage/diregist.h>
-
-//#define INCLUDEd->CSTDLIB
-//#define INCLUDEd->CSTRING
-#include "dcmtk/ofstd/ofstdinc.h"
-
-#include "dcmtk/dcmnet/dimse.h"
-#include "dcmtk/dcmnet/diutil.h"
-#include "dcmtk/dcmdata/dcdict.h"
-#include "dcmtk/dcmdata/dcuid.h"      /* for dcmtk version name */
+// Dcmtk includes
+#include <dcmtk/dcmdata/dcelem.h>
+#include <dcmtk/dcmdata/dcdeftag.h>
+#include <dcmtk/dcmnet/dfindscu.h>
 
 #ifdef WITH_OPENSSL
 #include "dcmtk/dcmtls/tlstrans.h"
 #include "dcmtk/dcmtls/tlslayer.h"
 #endif
 
+// QtDcm includes
 #include <QtDcmPatient.h>
 #include <QtDcmStudy.h>
 #include <QtDcmSerie.h>
@@ -64,15 +38,9 @@
 
 class QtDcmFindCallbackPrivate
 {
-
 public:
     int type;
 };
-
-QtDcmFindCallback::QtDcmFindCallback() : d ( new QtDcmFindCallbackPrivate )
-{
-    d->type = QtDcmFindCallback::PATIENT;
-}
 
 QtDcmFindCallback::QtDcmFindCallback ( int type ) :
         d ( new QtDcmFindCallbackPrivate )
@@ -82,12 +50,16 @@ QtDcmFindCallback::QtDcmFindCallback ( int type ) :
 
 QtDcmFindCallback::~QtDcmFindCallback()
 {
-  delete d;
-  d = NULL;
+    delete d;
+    d = NULL;
 }
 
 void QtDcmFindCallback::callback ( T_DIMSE_C_FindRQ *request, int responseCount, T_DIMSE_C_FindRSP *rsp, DcmDataset *responseIdentifiers )
 {
+    Q_UNUSED(request)
+    Q_UNUSED(responseCount)
+    Q_UNUSED(rsp)
+    
     QMap<QString, QString> infosMap;
 
     OFString info;
@@ -95,7 +67,7 @@ void QtDcmFindCallback::callback ( T_DIMSE_C_FindRQ *request, int responseCount,
     switch ( d->type )
     {
 
-    case QtDcmFindCallback::PATIENT:
+    case PATIENT:
         responseIdentifiers->findAndGetOFString ( DCM_PatientName, info );
         infosMap.insert ( "Name", QString ( info.c_str() ) );
         responseIdentifiers->findAndGetOFString ( DCM_PatientID, info );
@@ -109,7 +81,7 @@ void QtDcmFindCallback::callback ( T_DIMSE_C_FindRQ *request, int responseCount,
 
         break;
 
-    case QtDcmFindCallback::STUDY:
+    case STUDY:
         responseIdentifiers->findAndGetOFString ( DCM_StudyDescription, info );
         infosMap.insert ( "Description", QString ( info.c_str() ) );
         responseIdentifiers->findAndGetOFString ( DCM_StudyDate, info );
@@ -123,7 +95,7 @@ void QtDcmFindCallback::callback ( T_DIMSE_C_FindRQ *request, int responseCount,
 
         break;
 
-    case QtDcmFindCallback::SERIE:
+    case SERIE:
         responseIdentifiers->findAndGetOFString ( DCM_SeriesDescription, info );
         infosMap.insert ( "Description", QString ( info.c_str() ) );
         responseIdentifiers->findAndGetOFString ( DCM_StudyDate, info );
@@ -142,13 +114,13 @@ void QtDcmFindCallback::callback ( T_DIMSE_C_FindRQ *request, int responseCount,
         QtDcmManager::instance()->foundSerie ( infosMap );
         break;
 
-    case QtDcmFindCallback::IMAGE:
+    case IMAGE:
         responseIdentifiers->findAndGetOFString ( DCM_SOPInstanceUID, info );
 
 //         QtDcmManager::instance()->setPreviewImageUID ( QString ( info.c_str() ) );
         break;
 
-    case QtDcmFindCallback::IMAGES:
+    case IMAGES:
         OFString number;
         responseIdentifiers->findAndGetOFString ( DCM_SOPInstanceUID, info );
         responseIdentifiers->findAndGetOFString ( DCM_InstanceNumber, number );
@@ -161,6 +133,5 @@ void QtDcmFindCallback::callback ( T_DIMSE_C_FindRQ *request, int responseCount,
 //         responseIdentifiers->print ( std::cout );
 
         break;
-
     }
 }

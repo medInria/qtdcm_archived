@@ -22,34 +22,33 @@
 #include <QtDcmPreferencesDialog.h>
 #include "QtDcm.h"
 
-class QtDcmPreferencesDialogPrivate
+QtDcmPreferencesDialog::QtDcmPreferencesDialog ( QWidget * parent ) 
+    : QDialog(parent)
 {
-public:
-    QtDcmPreferences * preferences;
-};
-
-QtDcmPreferencesDialog::QtDcmPreferencesDialog ( QWidget * parent ) : d(new QtDcmPreferencesDialogPrivate)
-{
-    d->preferences = NULL;
-
     setupUi ( this );
     this->setModal ( true );
     this->setParent ( parent, Qt::Dialog );
 }
 
-QtDcmPreferencesWidget* QtDcmPreferencesDialog::getWidget()
+QtDcmPreferencesDialog::~QtDcmPreferencesDialog()
 {
-    return preferencesWidget;
 }
 
-void QtDcmPreferencesDialog::setPreferences(QtDcmPreferences* prefs)
+QtDcmPreferencesWidget* QtDcmPreferencesDialog::preferencesWidget()
 {
-    d->preferences = prefs;
+    return prefsWidget;
+}
 
-    dcm2niiWidget->setPreferences(d->preferences);
+void QtDcmPreferencesDialog::readPreferences()
+{
+    prefsWidget->readPreferences();
+    dcm2niiWidget->readPreferences();
 }
 
 void QtDcmPreferencesDialog::updatePreferences()
 {
-    d->preferences->writeSettings();
+    prefsWidget->updatePreferences();
+    dcm2niiWidget->updatePreferences();
+    
+    QtDcmPreferences::instance()->writeSettings();
 }

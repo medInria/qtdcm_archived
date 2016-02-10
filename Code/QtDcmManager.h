@@ -24,6 +24,7 @@
 #include <QtGui>
 #include <QtNetwork>
 
+class QTreeWidget;
 class QtDcm;
 class QtDcmServer;
 class QtDcmPreferences;
@@ -44,35 +45,29 @@ class  QTDCM_EXPORT QtDcmManager : public QObject
 {
     Q_OBJECT
 
-private:
-    void generateCurrentSerieDir();
-
-    void deleteCurrentSerieDir();
-
-    /**
-     * Create the temporary directory (/tmp/qtdcm on Unix) and the logging directory.
-     * (/tmp/qtdcm/logs)
-     */
-    void createTemporaryDirs();
-
 public:
-    enum outputdirmode
-    {
-        CUSTOM, DIALOG
+    enum eOutputdirMode {
+        CUSTOM = 0,
+        DIALOG
     };
 
-    enum convertiontool
-    {
-        ITK, DCM2NII
+    enum eConvertionMethod {
+        ITK = 0,
+        DCM2NII
+    };
+    
+    enum eMoveMode {
+        MEDIA = 0,
+        PACS
     };
 
-    static QtDcmManager*
-    instance();
-
+    static QtDcmManager* instance();
+    static void destroy();
+    
     /**
      * Default constructor. Instantiate the internal pointers and create the temporary directory.
      */
-    QtDcmManager();
+    QtDcmManager(QObject * parent = 0);
 
     /**
      * The default destructor
@@ -83,22 +78,24 @@ public:
      * Find SCU with Dcmtk code
      */
     void findPatientsScu();
-    void findStudiesScu ( QString patientName );
-    void findSeriesScu ( QString patientName, QString studyUID );
-    void findImagesScu ( QString uid );
-    void foundPatient ( QMap<QString, QString> infosMap );
-    void foundStudy ( QMap<QString, QString> infosMap );
-    void foundSerie ( QMap<QString, QString> infosMap );
+    void findStudiesScu ( const QString &patientName );
+    void findSeriesScu ( const QString &patientName,
+                         const QString &studyUID );
+    void findImagesScu ( const QString &uid );
+    void foundPatient ( const QMap<QString, QString> &infosMap );
+    void foundStudy ( const QMap<QString, QString> &infosMap );
+    void foundSerie ( const QMap<QString, QString> &infosMap );
 //     void foundImage ( QMap<QString, QString> infosMap );
-    void foundImage ( QString image, int number );
+    void foundImage ( const QString &image, int number );
     void moveSelectedSeries();
-    void getPreviewFromSelectedSerie ( QString uid, int elementCount );
+    void getPreviewFromSelectedSerie ( const QString &uid, int elementCount );
 //     void getPreviewFromSelectedSerie ( int elementIndex );
-    
+
     void findPatientsDicomdir();
-    void findStudiesDicomdir ( QString patientName );
-    void findSeriesDicomdir ( QString patientName, QString studyDescription );
-    void findImagesDicomdir ( QString serieUID );
+    void findStudiesDicomdir ( const QString &patientName );
+    void findSeriesDicomdir ( const QString &patientName,
+                              const QString &studyDescription );
+    void findImagesDicomdir ( const QString &serieUID );
 
     void setQtDcmWidget ( QtDcm * widget );
     void setPatientsTreeWidget ( QTreeWidget * widget );
@@ -109,11 +106,13 @@ public:
     void setPreviewWidget ( QtDcmPreviewWidget * widget );
     void setSerieInfoWidget ( QtDcmSerieInfoWidget * widget );
 
-    void setOutputdirMode ( QtDcmManager::outputdirmode mode );
-    QtDcmManager::outputdirmode getOutputdirMode();
+    void setOutputdirMode ( QtDcmManager::eOutputdirMode mode );
+    QtDcmManager::eOutputdirMode getOutputdirMode() const;
 
     void clearSerieInfo();
-    void updateSerieInfo ( QString eltCount, QString institution, QString name );
+    void updateSerieInfo ( const QString &eltCount,
+                           const QString &institution,
+                           const QString &name );
 
     /**
      * This method read the dicomdir file and populate the patient treewidget
@@ -126,44 +125,44 @@ public:
      *
      * @param message the error message to display
      */
-    void displayErrorMessage ( QString message );
+    void displayErrorMessage ( const QString &message );
 
     /**
      * Convenience method that display information message in a QMessageBox window.
      *
      * @param info the information message to display
      */
-    void displayMessage ( QString info );
+    void displayMessage ( const QString &info );
 
     /**
      * Return the dicomdir absolute path name
      *
      * @return _dicomdir the dicomdir file name.
      */
-    QString getDicomdir() const;
+    QString dicomdir() const;
 
     /**
      * Set the dicomdir file name
      *
      * @param dicomdir the dicomdir file name
      */
-    void setDicomdir ( QString dicomdir );
+    void setDicomdir ( const QString &dicomdir );
 
     /**
      * Return the output directory where the current serie will be reconstructed
      *
      * @return _outputdir the output directory path
      */
-    QString getOutputDirectory() const;
+    QString outputDirectory() const;
 
     /**
      * Set the output directory
      *
      * @param directory the output directory
      */
-    void setOutputDirectory ( QString directory );
+    void setOutputDirectory ( const QString &directory );
 
-    QtDcmServer * getCurrentPacs();
+    QtDcmServer currentPacs() const;
 
     void setCurrentPacs ( int index );
 
@@ -172,110 +171,110 @@ public:
      *
      * @return _patientName as a QString
      */
-    QString getPatientName();
+    QString patientName() const;
 
     /**
      * Patient name setter
      *
      * @param patientName as a QString
      */
-    void setPatientName ( QString patientName );
+    void setPatientName ( const QString &patientName );
 
     /**
      * Patient id getter
      *
      * @return _patientId as a QString
      */
-    QString getPatientId();
+    QString patientId() const;
 
     /**
      * Patient id setter
      *
      * @param patientId as a QString
      */
-    void setPatientId ( QString patientId );
+    void setPatientId ( const QString &patientId );
 
-    QString getPatientBirthDate();
-    
-    QString getPatientSex();
-    
-    void setPatientSex ( QString sex );
+    QString patientBirthdate() const;
+
+    QString patientGender() const;
+
+    void setPatientSex ( const QString &sex );
 
     /**
      * Serie description getter
      *
      * @return _serieDescription as a QString
      */
-    QString getSerieDescription();
+    QString seriesDescription() const;
 
     /**
      * Serie description setter
      *
      * @param serieDescription as a QString
      */
-    void setSerieDescription ( QString serieDescription );
+    void setSerieDescription ( const QString &serieDescription );
 
     /**
      * Study description getter
      *
      * @return _studyDescription as a QString
      */
-    QString getStudyDescription();
+    QString studyDescription() const;
 
     /**
      * Study description setter
      *
      * @param studyDescription as a QString
      */
-    void setStudyDescription ( QString studyDescription );
+    void setStudyDescription ( const QString &studyDescription );
 
-    QString getExamDate();
-    
+    QString examDate() const;
+
     /**
      * Study modality setter
      *
      * @param modality as a QString
      */
-    void setModality ( QString modality );
+    void setModality ( const QString &modality );
 
     /**
      * Study modality getter
      *
      * @return _modality as a QString
      */
-    QString getModality();
+    QString modality() const;
 
     /**
      * Study date setter
      *
      * @param date as a QString
      */
-    void setDate1 ( QString date );
+    void setStartDate ( const QString &date );
 
     /**
      * Study date getter
      *
      * @return _date as a QString
      */
-    QString getDate1();
+    QString startDate() const;
 
     /**
      * Study date setter
      *
      * @param date as a QString
      */
-    void setDate2 ( QString date );
+    void setEndDate ( const QString &date );
 
     /**
      * Study date getter
      *
      * @return _date as a QString
      */
-    QString getDate2();
+    QString getEndDate() const;
 
-    void addSerieToImport ( QString uid );
+    void addSerieToImport ( const QString &uid );
 
-    void removeSerieToImport ( QString uid );
+    void removeSerieToImport ( const QString &uid );
 
     void clearSeriesToImport();
 
@@ -289,16 +288,16 @@ public:
     /**
      * Mode getter
      */
-    QString getMode();
+    eMoveMode mode() const;
 
-    void setImagesList ( QList<QString> images );
+    void setListOfImages ( const QStringList &images );
 
-    QList<QString> getListImages();
-    void clearListImages();
+    QList<QString> listOfImages() const;
+    void clearListOfImages();
 
-    void setSerieId ( QString id );
+    void setSerieId ( const QString &id );
 
-    QString getCurrentSerieDirectory();
+    QString currentSeriesDirectory() const;
 
 //     void setPreviewImageUID ( QString uid );
 
@@ -313,20 +312,33 @@ public:
     void deleteTemporaryDirs();
 
 public slots:
+//    void onPatientFound()
+
     void updateProgressBar ( int i );
     void moveSeriesFinished();
     void clearPreview();
-    void makePreview ( QString filename );
-    void onSerieMoved ( QString directory, QString uid, int number );
+    void makePreview ( const QString &filename );
+    void onSerieMoved ( const QString &directory, const QString &uid, int number );
 
     void importSelectedSeries();
-    void importToDirectory ( QString directory );
+    void importToDirectory ( const QString &directory );
 
 signals:
-    void serieMoved ( QString directory );
+    void serieMoved ( const QString &directory );
     void importFinished();
     void gettingPreview();
+    
+private:
+    void generateCurrentSerieDir();
 
+    void deleteCurrentSerieDir();
+
+    /**
+     * Create the temporary directory (/tmp/qtdcm on Unix) and the logging directory.
+     * (/tmp/qtdcm/logs)
+     */
+    void createTemporaryDirs();
+    
 private:
     static QtDcmManager * _instance;
     QtDcmManagerPrivate *d;

@@ -30,7 +30,7 @@
 #include <itkMetaDataObject.h>
 #include <itkImageFileWriter.h>
 
-class QtDcmConvertPrivate
+class QtDcmConvert::Private
 {
 
 public:
@@ -41,7 +41,9 @@ public:
     QString outputFilename;
 };
 
-QtDcmConvert::QtDcmConvert ( QObject * parent ) : d ( new QtDcmConvertPrivate )
+QtDcmConvert::QtDcmConvert ( QObject * parent ) 
+    : QObject(parent),
+      d ( new QtDcmConvert::Private )
 {
     d->inputDirectory = "";
     d->outputFilename = "";
@@ -53,27 +55,22 @@ QtDcmConvert::~QtDcmConvert()
   d = NULL;
 }
 
-
 void QtDcmConvert::convert()
 {
-    if (QtDcmPreferences::instance()->useDcm2nii())
-    {
-        QString program = QtDcmPreferences::instance()->getDcm2niiPath();
+    if (QtDcmPreferences::instance()->useDcm2nii()) {
+        const QString program = QtDcmPreferences::instance()->dcm2niiPath();
         QStringList arguments;
         arguments << "-x" << "N";
         arguments << "-r" << "N";
         arguments << "-g" << "N";
         arguments << "-o" << d->outputDirectory << d->inputDirectory;
         
-        QProcess * process = new QProcess(this);
-        process->setStandardOutputFile(d->tempDirectory + QDir::separator() + "logs" + QDir::separator() + d->serieUID + ".txt");
-        process->start(program, arguments);
-        process->waitForFinished();
-
-        delete process;
+        QProcess process(this);
+        process.setStandardOutputFile(d->tempDirectory + QDir::separator() + "logs" + QDir::separator() + d->serieUID + ".txt");
+        process.start(program, arguments);
+        process.waitForFinished();
     }
-    else
-    {
+    else {
         typedef signed short                                PixelType;
         const unsigned int Dimension = 3;
         typedef itk::Image< PixelType, Dimension >          ImageType;
@@ -96,20 +93,21 @@ void QtDcmConvert::convert()
         inputNames->LoadSequencesOn();
         inputNames->LoadPrivateTagsOn();
         inputNames->SetInputDirectory ( d->inputDirectory.toStdString() );
-        try
-        {
+        try {
             const SeriesIdContainer & seriesUID = inputNames->GetSeriesUIDs();
+            if (seriesUID.empty()) { // Prevent crash
+                qCritical() << "Series uid list is empty";
+                return;
+            }
             std::string seriesIdentifier = seriesUID.begin()->c_str();
             FileNamesContainer filenames = inputNames->GetFileNames ( seriesIdentifier );
 
             dicomIO->SetFileName ( filenames.begin()->c_str() );
-            try
-            {
+            try {
                 dicomIO->ReadImageInformation();
             }
-            catch ( itk::ExceptionObject &e )
-            {
-                qDebug() << e.GetDescription();
+            catch ( itk::ExceptionObject &e ) {
+                qCritical() << e.GetDescription();
                 return;
             }
 
@@ -117,13 +115,11 @@ void QtDcmConvert::convert()
             reader->SetFileNames ( filenames );
             reader->SetImageIO ( dicomIO );
 
-            try
-            {
+            try {
                 reader->Update();
             }
-            catch ( itk::ExceptionObject &excp )
-            {
-                std::cerr << excp << std::endl;
+            catch ( itk::ExceptionObject &excp ) {
+                qCritical() << excp.GetDescription();
                 return;
             }
 
@@ -181,45 +177,42 @@ void QtDcmConvert::convert()
             writer->SetInput ( reader->GetOutput() );
 //         writer->SetInput ( image );
 
-            try
-            {
+            try {
                 writer->Update();
             }
-            catch ( itk::ExceptionObject &ex )
-            {
-                std::cout << ex << std::endl;
+            catch ( itk::ExceptionObject &ex ) {
+                qCritical() << ex.GetDescription();
                 return;
             }
         }
-        catch ( itk::ExceptionObject &ex )
-        {
-            std::cout << ex << std::endl;
+        catch ( itk::ExceptionObject &ex ) {
+            qCritical() << ex.GetDescription();
             return;
         }
     }
 }
 
-void QtDcmConvert::setInputDirectory ( QString dir )
+void QtDcmConvert::setInputDirectory ( const QString & dir )
 {
     d->inputDirectory = dir;
 }
 
-void QtDcmConvert::setOutputDirectory ( QString dir )
+void QtDcmConvert::setOutputDirectory ( const QString & dir )
 {
     d->outputDirectory = dir;
 }
 
-void QtDcmConvert::setOutputFilename ( QString fname )
+void QtDcmConvert::setOutputFilename ( const QString & fname )
 {
     d->outputFilename = fname;
 }
 
-void QtDcmConvert::setSerieUID(QString uid)
+void QtDcmConvert::setSerieUID(const QString & uid)
 {
   d->serieUID = uid;
 }
 
-void QtDcmConvert::setTempDirectory(QString dir)
+void QtDcmConvert::setTempDirectory(const QString & dir)
 {
   d->tempDirectory = dir;
 }
